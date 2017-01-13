@@ -1,0 +1,529 @@
+# -*- coding: utf-8 -*-
+# We will randomly define initial values for connection weights, and also randomly select
+#   which training data that we will use for a given run.
+import random
+ 
+# We want to use the exp function (e to the x); it's part of our transfer function definition
+from math import exp
+
+# Biting the bullet and starting to use NumPy for arrays
+import numpy as np
+
+####################################################################################################
+####################################################################################################
+#
+# This is a tutorial program, designed for those who are learning Python, and specifically using 
+#   Python for neural networks applications
+#
+# SPECIAL NOTE re/ Python code structure: 
+# Python uses a 'main' module, which is typically located at the end of the code. 
+# There is a short line after that which actual RUNS the 'main' module. 
+# All supporting tasks are defined as various procedures and functions. They are stored higher in 
+#   the code. 
+# Typically, the most general and global procedures and functions are at the bottom of the code, and
+#   the more detail-specific ones are at the top. 
+# Thus, if you want to understand a piece of code, you might want to read from bottom-to-top (or
+#    from more general-to-specific), instead of top-to-bottom (detailed-specific-to-general).
+#
+# Notice that control (e.g., nesting) is defined by spacing. 
+# You can define the number of spaces for a tab, but you have to be consistent. 
+# Notice that once a procedure is defined, every command within it must be tabbed in.  
+#
+####################################################################################################
+####################################################################################################
+
+
+####################################################################################################
+####################################################################################################
+#
+# Procedure to welcome the user and identify the code
+#
+####################################################################################################
+####################################################################################################
+
+# This procedure is called from the 'main' program.
+# Notice that it has an empty parameter list. 
+# Procedures require a parameter list, but it can be empty. 
+
+def welcome ():
+
+
+    print
+    print '******************************************************************************'
+    print
+    print 'Welcome to the Multilayer Perceptron Neural Network'
+    print '  trained using the backpropagation method.'
+    print 'Version 0.1, 01/02/2017, A.J. Maren'
+    print 'For comments, questions, or bug-fixes, contact: alianna.maren@northwestern.edu'
+    print
+    print '******************************************************************************'
+    print
+    return()
+
+# The above 'return()' statement takes us back to the 'main' module. There have been no parameters
+#   defined in this procedure, there is nothing new to return, so the list is still empty.         
+
+
+####################################################################################################
+####################################################################################################
+#
+# Procedure to obtain the neural network size specifications
+#
+####################################################################################################
+####################################################################################################
+
+def obtainNeuralNetworkSizeSpecs ():
+
+# This procedure operates as a function, as it returns a single value (which really is a list of 
+#    three values). It is called directly from 'main.'
+#        
+# This procedure allows the user to specify the size of the input (I), hidden (H), 
+#    and output (O) layers.  
+# These values will be stored in a list, the arraySizeList. 
+# This list will be used to specify the sizes of two different weight arrays:
+#   - wWeights; the Input-to-Hidden array, and
+#   - vWeights; the Hidden-to-Output array. 
+# However, even though we're calling this procedure, we will still hard-code the array sizes for now. 
+
+    print 'Define the numbers of input, hidden, and output nodes' 
+          
+    x = input('Enter the number of input nodes here: ')
+    numInputNodes = int(x)
+    print 'The number of input nodes you have entered is', numInputNodes 
+    print 'Thank you; the number of input nodes that will be used is temporarilly hard-coded to 2.' 
+    print #to get a line space between requests
+                
+    x = input('Enter the number of hidden nodes here: ')
+    # Notice that we are re-using the variable x; it can be reused because it is just catching the 
+    #    user's input and then the real variable of interest is defined using it. 
+    # Notice that by specifying 'int(x)', we make sure that whatever we catch from the user is 
+    #    stored as an integer, not as a float or a string variable.     
+    numHiddenNodes = int(x)
+    print 'The number of hidden nodes you have entered is', numInputNodes 
+    print 'Thank you; the number of hidden nodes that will be used is temporarilly hard-coded to 2.' 
+    print #to get a line space between requests   
+        
+    x = input('Enter the number of output nodes here: ')
+    numOutputNodes = int(x)
+    print 'The number of output nodes you have entered is', numInputNodes 
+    print 'Thank you; the number of output nodes that will be used is temporarilly hard-coded to 2.' 
+    print #to get a line space between requests    
+
+    numInputNodes = 2
+    numHiddenNodes = 2
+    numOutputNodes = 2    
+            
+# We create a list containing the crucial SIZES for the connection weight arrays                
+    arraySizeList = (numInputNodes, numHiddenNodes, numOutputNodes)
+    
+# We return this list to the calling procedure, 'main'.       
+    return (arraySizeList)  
+
+
+
+####################################################################################################
+####################################################################################################
+#
+# Function to initialize a specific connection weight with a randomly-generated number between 0 & 1
+#
+####################################################################################################
+####################################################################################################
+
+def initializeWeight ():
+
+    randomNum = random.random()
+    weight=1-2*randomNum
+    print weight
+           
+    return (weight)  
+
+
+
+####################################################################################################
+####################################################################################################
+#
+# Procedure to initialize the connection weight arrays
+#
+####################################################################################################
+####################################################################################################
+
+def initializeWeightArray (weightArraySizeList):
+
+# This procedure is also called directly from 'main.'
+#        
+# This procedure takes in the two parameters, the number of nodes on the bottom (of any two layers), 
+#   and the number of nodes in the layer just above it. 
+#   It will use these two sizes to create a weight array.
+# The weights will initially be given assigned values here, so that we can trace the creation and 
+#   transfer of this array back to the 'main' procedure. 
+# Later, we will randomly define initial weight values.   
+# These values will be stored in an array, the weightArray. 
+# This procedure is being called as a function; the returned value is the new connection weight matrix. 
+# Right now, for simplicity and test purposes, the weightArray is set to a single value. 
+
+# Note my variable-naming convention: 
+#    - If it is an array, I call it variableNameArray
+#    - If it is a list, I call it variableNameList
+#    - It's a lot like calling your dog Roger "rogerDog"
+#        and your cat Fluffy "fluffyCat"
+#        but until we're better at telling cats from dogs, this helps. 
+    
+    print
+    print 'Inside initializeWWeightArray' 
+    
+    numBottomNodes = weightArraySizeList[0]
+    numUpperNodes = weightArraySizeList[1]
+            
+    print 'The number of lower nodes is', numBottomNodes 
+    print 'The number of upper nodes is', numUpperNodes  
+    print #to get a line space
+                  
+#
+# Hard-code the first set of weights
+
+#
+# For real code, we'd randomly initialize these weights
+# Right now, I'm just illustrating how they're being defined 
+#   and showing how to print them. 
+#
+# This is direct specification of the elements in an array. 
+
+#    weightArray=np.array([[1,2],[3,4]],np.int32)
+
+    wt00=initializeWeight ()
+    wt01=initializeWeight ()
+    wt10=initializeWeight ()
+    wt11=initializeWeight ()    
+    weightArray=np.array([[wt00,wt01],[wt10,wt11]])
+
+# Notice that the weight positions are being labeled according to how Python numbers elements in an array
+#    ... so the first one is in position [0,0].
+
+# Print the entire weights array. 
+    print weightArray
+    
+# We return the array to the calling procedure, 'main'.       
+    return (weightArray)  
+
+
+
+
+#------------------------------------------------------# 
+
+#
+# Hard-code the first set of weights
+
+#
+# For real code, we'd randomly initialize these weights
+# Right now, I'm just illustrating how they're being defined 
+#   and showing how to print them. 
+#
+# This is direct specification of the elements in an array. 
+
+#    wWeightsArray=np.array([[1,2],[3,4]],np.int32)
+
+# Print the entire weights array. 
+#    print wWeightsArray
+
+
+# Print a specific element in the weight array; 
+#   recall that Python arrays start with
+#   numbering the first element as 0-position;
+#   so index for an array with two elements goes from 0..1
+
+# The following prints out the weight connecting the first input node
+#   to the second hidden weight
+#    print wWeightsArray[0,1]
+
+# Just to have this on hand for later, we'll define the 2nd set of weight now.
+# I'm just giving these negative number initial values so you can see that 
+#   they're different from the wWeights
+
+# This is just tutorial code on how to do different things
+# I've got it commented out so that it doesn't interfere with running the neural network steps
+# This is defining an array with specific initial values, using numPy specifications. 
+#    vWeightsArray=np.array([[-1,-2],[-3,-4]],np.int32)
+#    print wWeightsArray
+
+# An alternative means of generating an array is to start with a list 
+#    newWeightsList = [5,6,7,8]
+#    newWeightsArray=np.array(newWeightsList)
+#    print newWeightsArray
+
+
+# This is an alternative way of generating a list
+#    mynewlist = [1, 1, 1]
+#    print mynewlist
+
+# This is an alternative way of generating an array
+#    myArray=[[1,2],[3,4]] 
+#    q=myArray[0][1]
+#    print q       
+# Notice that the print is directed to a specific element within the array, it will print the value '2'. 
+# '2' is the value in the ZEROTH row and the FIRST element in that row.
+# Remember that we start counting from 0 ..., so when we say q=myArray[0][1] we are counting that
+#   second element starting at 0, so the [1] puts us in the second place in that row.                         
+
+
+#------------------------------------------------------#   
+ 
+# AJ's little bit of study-code
+# It just shows how to pass a variable into a function,
+#  and then return the value defined by that function. 
+#def square ( x ):
+#    y={}
+#    y=x*x
+#    print y
+#    x=y
+#    print x
+#    return y;
+#x=3
+#y=square (x)
+#print x, y
+    
+#------------------------------------------------------#    
+
+# Compute neuron output using sigmoid transfer function
+def computeTransferFnctn(summedNeuronInput, alpha):
+    return 1.0 / (1.0 + exp(-alpha*summedNeuronInput))
+# This function is not yet in use    
+
+#------------------------------------------------------# 
+    
+# Compute derivative of transfer function
+def computeTransferFnctnDeriv(NeuronOutput, alpha):
+    return alpha*NeuronOutput*(1.0 -NeuronOutput)     
+# This function is not yet in use 
+
+    
+####################################################################################################
+####################################################################################################
+#
+# Compute neuron output using sigmoid transfer function
+#
+####################################################################################################
+####################################################################################################
+
+def computeNeuronActivation(v11, v12, h1, h2):
+    y={}
+    y=0
+    return y;
+# This function is not yet in use and needs to be modified    
+
+
+
+
+
+
+####################################################################################################
+####################################################################################################
+#
+# Function to initialize a specific connection weight with a randomly-generated number between 0 & 1
+#
+####################################################################################################
+####################################################################################################
+
+def obtainRandomXORInputValue ():
+
+    randomNum = random.random()
+    if randomNum>0.5: inputVal = 1
+    else: inputVal = 0
+           
+    return (inputVal)  
+
+    
+####################################################################################################
+####################################################################################################
+#
+# Obtain a single training input for the X-OR problem, return an updated list with two new input values
+#
+####################################################################################################
+####################################################################################################
+
+def ObtainSingleTrainingSet (inputArrayLength):
+
+    InputTrainXORList =list()    
+    intVal1=obtainRandomXORInputValue()
+    intVal2=obtainRandomXORInputValue()
+    InputTrainXORList =(intVal1, intVal2) 
+   
+      
+    return (InputTrainXORList);
+  
+
+    
+####################################################################################################
+####################################################################################################
+#
+# Obtain the desired associated output for the X-OR problem, return the list with two output values
+#
+####################################################################################################
+####################################################################################################
+
+def ObtainDesiredOutputList (outputArrayLength, InputTrainXORList):
+
+# Not really using the outputArrayLength right now; hard-coded in.
+      
+    intVal0=InputTrainXORList[0]
+    intVal1=InputTrainXORList[1]
+    if intVal0 > 0.9: 
+        if intVal1 > 0.9: # Case where both inputs = 1 
+            outVal0 = 1 # Assign the zeroth output node to be 1
+            outVal1 = 0 # Assign the next output node to be 0
+        else: # Case where zeroth input = 1; next input = 0
+            outVal0 = 0 # Assign the zeroth output node to be 0
+            outVal1 = 1 # Assign the next output node to be 1             
+    else: # Case where the zeroth input = 0 
+        if intVal1 > 0.9: # Case where zeroth input = 0, next input = 1  
+            outval0 = 0 # Assign the zeroth output node to be 0
+            outval1 = 1 # Assign the next output node to be 1
+        else: # Case where both inputs = 0
+            outVal0 = 1 # Assign the zeroth output node to be 1
+            outVal1 = 0 # Assign the next output node to be 0         
+        
+    OutputTrainXORList =(outVal0, outVal1) 
+        
+    return (OutputTrainXORList);
+
+
+#------------------------------------------------------#
+
+# A slushpile of various things to use later: 
+
+
+#z=computeTransferFnctn(summedInput, alpha)
+#print z
+
+#deriv=computeTransferFnctnDeriv(z, alpha)
+#print deriv
+
+
+
+    
+####################################################################################################
+####################################################################################################
+#
+# The MAIN module comprising of calls to:
+#   (1) Welcome
+#   (2) Obtain neural network size specifications for a three-layer network consisting of:
+#       - Input layer
+#       - Hidden layer
+#       - Output layer (all the sizes are currently hard-coded to two nodes per layer right now)
+#   (3) Initialize connection weight values
+#       - w: Input-to-Hidden nodes
+#       - v: Hidden-to-Output nodes
+#
+####################################################################################################
+####################################################################################################
+
+
+def main():
+
+####################################################################################################
+# Obtain unit array size in terms of array_length (M) and layers (N)
+####################################################################################################                
+
+# This calls the procedure 'welcome,' which just prints out a welcoming message. 
+# All procedures need an argument list. 
+# This procedure has a list, but it is an empty list; welcome().
+
+    welcome()
+    
+
+# Parameter definitions, to be replaced with user inputs
+    alpha = 1
+    summedInput = 1
+
+# Right now, for simplicity, we're going to hard-code the numbers of layers that we have in our 
+#   multilayer Perceptron (MLP) neural network. 
+# We will have an input layer (I), an output layer (O), and a single hidden layer (H). 
+
+# This defines the variable arraySizeList, which is a list. It is initially an empty list. 
+# Its purpose is to store the size of the array.
+
+    arraySizeList = list() # empty list
+
+# Notice that I'm using the same variable name, 'arraySizeList' both here in main and in the 
+#    called procedure, 'obtainNeuralNetworkSizeSpecs.' 
+# I don't have to use the same name; the procedure returns a list and I'm assigning it HERE 
+#    to the list named arraySizeList in THIS 'main' procedure. 
+# I could use different names. 
+# I'm keeping the same name so that it is easier for us to connect what happens in the called procedure
+#    'obtainNeuralNetworkSizeSpecs' with this procedure, 'main.' 
+       
+    arraySizeList = obtainNeuralNetworkSizeSpecs ()
+# Unpack the list; ascribe the various elements of the list to the sizes of different network layers    
+    inputArrayLength = arraySizeList[0]
+    hiddenArrayLength = arraySizeList [1]
+    outputArrayLength = arraySizeList [2]
+
+# I have all sorts of debug statements left in this, so you can trace the code moving into and out of
+#   various procedures and functions.    
+            
+    print 'Flow-of-control trace: Back in main'
+    print 'I = number of nodes in input layer is', inputArrayLength
+    print 'H = number of nodes in hidden layer is', hiddenArrayLength         
+    print 'O = number of nodes in output layer is', outputArrayLength                             
+
+     
+
+####################################################################################################
+# Initialize the weight arrays for two sets of weights; w: input-to-hidden, and v: hidden-to-output
+####################################################################################################                
+
+#
+# The wWeightArray is for Input-to-Hidden
+# The vWeightArray is for Hidden-to-Output
+
+    wWeightArraySizeList = (inputArrayLength, hiddenArrayLength)
+    vWeightArraySizeList = (hiddenArrayLength, outputArrayLength)    
+
+    wWeightArray = initializeWeightArray (wWeightArraySizeList)
+    vWeightArray = initializeWeightArray (vWeightArraySizeList)
+#
+#   debug print: 
+#
+    print
+    print 'Flow-of-control trace: Back in main from two trips to initializeWeightArray'
+    print 'wWeightArray = Input-to-Hidden initial weights = ', wWeightArray
+    print 'vWeightArray = Hidden-to-Output initial weights = ', vWeightArray
+    print
+    
+####################################################################################################
+# Next step - Obtain a single set of input values for the X-OR problem; two integers - can be 0 or 1
+####################################################################################################                
+
+# Initialize by setting both inputs to 0
+    input0 = 0; input1 = 0   
+                         
+    InputTrainXORList = (input0, input1)
+    
+# Now the inputs will be randomly assigned to 0 or 1
+    InputTrainXORList = ObtainSingleTrainingSet (inputArrayLength) 
+    input0 = InputTrainXORList[0]
+    input1 = InputTrainXORList[1]    
+    print 'After randomly initializing inputs for XOR:'
+    print 'Input0 = ', input0
+    print 'Input1 = ', input1    
+
+####################################################################################################
+# Identify what the corresponding outputs should be
+####################################################################################################                
+ 
+    output0 = 0; output1 = 0 
+    desiredOutputXORList = ObtainDesiredOutputList (outputArrayLength, InputTrainXORList)
+    output0 = desiredOutputXORList[0] 
+    output1 = desiredOutputXORList[1]
+    print 'The desired outputs for this training pass on the XOR:'
+    print 'Desired Output0 = ', output0
+    print 'Desired Output1 = ', output1      
+                     
+####################################################################################################
+# Conclude specification of the MAIN procedure
+####################################################################################################                
+    
+if __name__ == "__main__": main()
+
+####################################################################################################
+# End program
+#################################################################################################### 
